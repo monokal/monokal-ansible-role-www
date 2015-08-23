@@ -1,0 +1,119 @@
+---
+
+# UFW
+
+- name: ufw_allow
+  ufw:
+    rule: allow
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+    direction: "{{ item.direction }}"
+  with_items:
+    - { port: '80', proto: 'tcp', direction: 'in'}
+    - { port: '443', proto: 'tcp', direction: 'in'}
+  register: ufw_allow
+
+# Update
+
+- name: update_system
+  apt:
+    update_cache: yes
+  register: update_system
+
+# Packages
+
+- name: install_packages
+  when: update_system|success
+  apt:
+    name: "{{ item }}"
+  with_items:
+    - "nginx"
+  register: install_packages
+
+# Nginx configuration
+
+- name: amend_nginx_config
+  when: install_packages|success
+  template:
+    src:    nginx_conf
+    dest:   /etc/nginx/nginx.conf
+    owner:  root
+    group:  root
+    mode:   "u=rw,g=r,o=r"
+  notify:
+    - reload_nginx
+
+# Remove default site from sites-enabled
+
+- name: disable_default_site
+  when: install_packages|success
+  file:
+    path:   /etc/nginx/sites-enabled/default
+    state:  absent
+  register: disable_default_site
+
+# Nginx directories
+
+- name: create_www_dir
+  file:
+    path:   /var/www
+    state:  directory
+    owner:  www-data
+    group:  www-data
+    mode:   "u=rwx,g=r,o=r"
+  register: create_www_dir
+
+### monokal.io
+
+# monokal.io Nginx configuration
+
+- name: create_monokal_io_config
+  when: install_packages|success
+  template:
+    src:    nginx_monokal_io
+    dest:   /etc/nginx/sites-available/monokal.io
+    owner:  www-data
+    group:  www-data
+    mode:   "u=rwx,g=r,o=r"
+  register: create_monokal_io_config
+  notify:
+    - reload_nginx
+
+# monokal.io directories
+
+- name: create_monokal_io_dirs
+  when: create_www_dir|success
+  file:
+    path:   "{{ item }}"
+    state:  directory
+    owner:  www-data
+    group:  www-data
+    mode:   "u=rwx,g=r,o=r"
+  with_items:
+    - "/var/www/monokal.io/public_html"
+  register: create_monokal_io_dirs
+
+# monokal.io content
+
+- name: create_monokal_io_content
+  when: create_monokal_io_dirs|success
+  template:
+    src:    index.html.j2
+    dest:   /var/www/monokal.io/public_html/index.html
+    owner:  www-data
+    group:  www-data
+    mode:   "u=rwx,g=r,o=r"
+
+# monomal.io sites-enabled symlink
+
+- name: enable_monokal_io
+  when: create_monokal_io_config|success
+  file:
+    src:   "/etc/nginx/sites-available/monokal.io"
+    dest:  "/etc/nginx/sites-enabled/monokal.io"
+    state: link
+    owner: www-data
+    group: www-data
+    mode:  "u=rwx,g=r,o=r"
+  notify:
+    - reload_nginx
