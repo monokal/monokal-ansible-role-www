@@ -7,14 +7,12 @@
     <body>
         <div class="container">
             <div class="row">
-                <div class="col-md-4"></div>
-                <div class="col-md-4">
+                <div class="col-md-12">
                     <div class="alert alert-warning" role="alert">
-                        <h4>You're connected to <strong>{{ ansible_hostname }}</h4>
+                        <h4>You're connected to {{ ansible_hostname }}</h4>
                         <p>This system is for the use of authorised users only. Usage of this system is monitored and recorded. Anyone using this system expressly consents to such monitoring and is advised that if such monitoring reveals possible evidence of criminal activity, system personnel may provide such evidence to law enforcement officials.</p>
                     </div>
                 </div>
-                <div class="col-md-4"></div>
             </div>
         </div>
     </body>
