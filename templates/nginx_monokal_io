@@ -24,7 +24,7 @@ server {
    listen 443;
    server_name monokal.io;
 
-   root html;
+   root /var/www/monokal.io/public_html;
    index index.html;
 
    ssl on;
