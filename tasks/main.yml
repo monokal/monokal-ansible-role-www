@@ -43,7 +43,7 @@
 
 - name: generate_nginx_certs
   when: create_nginx_ssl_dir|success
-  command: "sudo openssl req -x509 -subj '/C=GB/ST=South Yorkshire/L=Sheffield/O=monokal/CN=${ansible_fqdn}' -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/nginx.key -out /etc/nginx/ssl/nginx.crt"
+  command: "sudo openssl req -x509 -subj '/C=GB/ST=South Yorkshire/L=Sheffield/O=monokal/CN={{ ansible_fqdn }}' -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/nginx.key -out /etc/nginx/ssl/nginx.crt"
   args:
     creates: /etc/nginx/ssl/nginx.crt
   register: generate_nginx_certs
