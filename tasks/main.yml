@@ -9,7 +9,6 @@
     proto: "{{ item.proto }}"
     direction: "{{ item.direction }}"
   with_items:
-    - { port: '80', proto: 'tcp', direction: 'in'}
     - { port: '443', proto: 'tcp', direction: 'in'}
   register: ufw_allow
 
@@ -29,6 +28,27 @@
   with_items:
     - "nginx"
   register: install_packages
+
+# Nginx certificates
+
+- name: create_nginx_ssl_dir
+  when: install_packages|success
+  file:
+    path:  /etc/nginx/ssl
+    state: directory
+    owner: www-data
+    group: www-data
+    mode:  "u=rwx,g=r,o=r"
+  register: create_nginx_ssl_dir
+
+- name: generate_nginx_certs
+  when: create_nginx_ssl_dir|success
+  command: "sudo openssl req -x509 -subj '/C=GB/ST=South Yorkshire/L=Sheffield/O=monokal/CN=${ansible_fqdn}' -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/nginx.key -out /etc/nginx/ssl/nginx.crt"
+  args:
+    creates: /etc/nginx/ssl/nginx.crt
+  register: generate_nginx_certs
+  notify:
+    - reload_nginx
 
 # Nginx configuration
 
