@@ -126,6 +126,15 @@
     group: www-data
     mode:  "u=rwx,g=r,o=r"
 
+- name: copy_monomal_io_images
+  when: create_monokal_io_dirs|success
+  copy:
+    src:   logo.png
+    dest:  /var/www/monokal.io/public_html/logo.png
+    owner: www-data
+    group: www-data
+    mode:  "u=rwx,g=r,o=r"
+
 # monomal.io sites-enabled symlink
 
 - name: enable_monokal_io
